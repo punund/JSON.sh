@@ -13,6 +13,7 @@ usage() {
   echo
   echo "Usage: JSON.sh [-b] [-l] [-p] [-h]"
   echo
+  echo "-a - Array variable to prepend."
   echo "-p - Prune empty. Exclude fields with empty values."
   echo "-l - Leaf only. Only show leaf nodes, which stops data duplication."
   echo "-b - Brief. Combines 'Leaf only' and 'Prune empty' options."
@@ -21,29 +22,24 @@ usage() {
 }
 
 parse_options() {
-  set -- "$@"
-  local ARGN=$#
-  while [ $ARGN -ne 0 ]
-  do
-    case $1 in
-      -h) usage
-          exit 0
-      ;;
-      -b) BRIEF=1
-          LEAFONLY=1
-          PRUNE=1
-      ;;
-      -l) LEAFONLY=1
-      ;;
-      -p) PRUNE=1
-      ;;
-      ?*) echo "ERROR: Unknown option."
-          usage
-          exit 0
-      ;;
+  while getopts "ha:blp" opt; do
+    case $opt in
+      h) usage
+         exit 0
+         ;;
+      a) 
+         ARVAR=$OPTARG ;;
+      b) BRIEF=1
+         LEAFONLY=1
+         PRUNE=1
+         ;;
+      l) LEAFONLY=1 ;;
+      p) PRUNE=1 ;;
+     \?) echo "ERROR: Unknown option."
+         usage
+         exit 0
+         ;;
     esac
-    shift 1
-    ARGN=$((ARGN-1))
   done
 }
 
@@ -169,7 +165,7 @@ parse_value () {
   [ "$LEAFONLY" -eq 0 ] && [ "$PRUNE" -eq 1 ] && [ "$isempty" -eq 0 ] && print=1
   [ "$LEAFONLY" -eq 1 ] && [ "$isleaf" -eq 1 ] && \
     [ $PRUNE -eq 1 ] && [ $isempty -eq 0 ] && print=1
-  [ "$print" -eq 1 ] && printf "[%s]\t%s\n" "$jpath" "$value"
+  [ "$print" -eq 1 ] && printf "$ARVAR[%s]=%s\n" "$jpath" "$value"
   :
 }
 
